@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project Dhruv - Mensa India Initiative</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: ({ opacityValue }) => opacityValue !== undefined ? `rgba(0,85,255,${opacityValue})` : '#0055FF',
+            'warm-ink': ({ opacityValue }) => opacityValue !== undefined ? `rgba(26,26,26,${opacityValue})` : '#1A1A1A',
+            'warm-cream': ({ opacityValue }) => opacityValue !== undefined ? `rgba(253,252,247,${opacityValue})` : '#FDFCF7',
+            'warm-beige': ({ opacityValue }) => opacityValue !== undefined ? `rgba(245,245,240,${opacityValue})` : '#F5F5F0',
+          },
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui'],
+            serif: ['Playfair Display', 'Georgia', 'serif'],
+          },
+        }
+      }
+    };
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+      background: #020617;
+      color: #fff;
+    }
+    body::before, body::after {
+      content: "";
+      position: fixed;
+      width: 50vw; height: 50vw;
+      border-radius: 50%;
+      filter: blur(80px);
+      z-index: -1;
+      opacity: 0.1;
+      pointer-events: none;
+    }
+    body::before { top:-10%;left:-10%;background:#0055FF;animation:blobFloat 20s infinite alternate; }
+    body::after  { bottom:-10%;right:-10%;background:#4f46e5;animation:blobFloat 25s infinite alternate-reverse; }
+    @keyframes blobFloat {
+      0%   { transform: translate(0,0) scale(1); }
+      100% { transform: translate(10%,10%) scale(1.1); }
+    }
+    .glass {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.2);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .glass-light {
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.3);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    }
+    /* Fade-in animations */
+    .fade-enter { opacity:0; transform: translateY(24px); }
+    .fade-enter-active { opacity:1; transform:translateY(0); transition: opacity 0.9s cubic-bezier(.16,1,.3,1), transform 0.9s cubic-bezier(.16,1,.3,1); }
+    .fade-from-left { opacity:0; transform: translateX(-30px); }
+    .fade-from-left.visible { opacity:1; transform:translateX(0); transition: opacity 0.8s ease, transform 0.8s ease; }
+    .fade-up { opacity:0; transform: translateY(24px); }
+    .fade-up.visible { opacity:1; transform:translateY(0); transition: opacity 0.8s cubic-bezier(.16,1,.3,1), transform 0.8s cubic-bezier(.16,1,.3,1); }
+    .fade-scale { opacity:0; transform: scale(0.88); }
+    .fade-scale.visible { opacity:1; transform:scale(1); transition: opacity 0.9s ease, transform 0.9s ease; }
+    /* Hover effects */
+    .card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .card-hover:hover { transform: translateY(-10px); box-shadow: 0 30px 60px rgba(0,0,0,0.15); }
+    .btn-hover { transition: all 0.3s ease; }
+    .btn-hover:hover { transform: scale(1.05) translateY(-3px); }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+    /* Accordion */
+    .accordion-content {
+      max-height: 0; overflow: hidden; opacity: 0;
+      transition: max-height 0.4s cubic-bezier(.04,.62,.23,.98), opacity 0.3s ease;
+    }
+    .accordion-content.open { max-height: 400px; opacity: 1; }
+    /* Hero parallax bg */
+    .hero-parallax-bg { will-change: transform; }
+    /* Stagger children */
+    .stagger > *:nth-child(1) { transition-delay: 0s; }
+    .stagger > *:nth-child(2) { transition-delay: 0.1s; }
+    .stagger > *:nth-child(3) { transition-delay: 0.2s; }
+    .stagger > *:nth-child(4) { transition-delay: 0.3s; }
+    .stagger > *:nth-child(5) { transition-delay: 0.4s; }
+    .stagger > *:nth-child(6) { transition-delay: 0.5s; }
+    .stagger > *:nth-child(7) { transition-delay: 0.6s; }
+    .stagger > *:nth-child(8) { transition-delay: 0.7s; }
+    /* Float animation for about image */
+    @keyframes floatImg { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-18px)} }
+    .float-img { animation: floatImg 5s ease-in-out infinite; }
+    /* Nav active underline */
+    .nav-link { position: relative; }
+    .nav-link::after {
+      content:''; position:absolute; bottom:-2px; left:0; right:0; height:2px;
+      background:#0055FF; border-radius:9999px; transform:scaleX(0);
+      transition: transform 0.3s ease;
+    }
+    .nav-link.active::after, .nav-link:hover::after { transform:scaleX(1); }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+/* ─── SVG Icons ─────────────────────────────────────────────── */
+const IC = {
+  ArrowRight: `<line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>`,
+  Menu: `<line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="18" x2="20" y2="18"/>`,
+  X: `<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>`,
+  Plus: `<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>`,
+  Minus: `<line x1="5" y1="12" x2="19" y2="12"/>`,
+  Mail: `<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>`,
+  Phone: `<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13 19.79 19.79 0 0 1 1.61 4.2 2 2 0 0 1 3.56 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>`,
+  MapPin: `<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>`,
+  Twitter: `<path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>`,
+  Linkedin: `<path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/>`,
+  Github: `<path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>`,
+  Facebook: `<path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>`,
+  Instagram: `<rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>`,
+  Users: `<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`,
+  Heart: `<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>`,
+  Search: `<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>`,
+  Award: `<circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>`,
+  Shield: `<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>`,
+  ShieldCheck: `<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/>`,
+  Zap: `<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>`,
+  Star: `<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>`,
+  Eye: `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`,
+  Target: `<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>`,
+  History: `<polyline points="12 8 12 12 14 14"/><path d="M3.05 11A9 9 0 1 1 3 13"/><polyline points="3 7 3 13 9 13"/>`,
+  Play: `<polygon points="5 3 19 12 5 21 5 3"/>`,
+  BookOpen: `<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>`,
+  Brain: `<path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-1.44-4.29 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.42-1.93z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 1.44-4.29 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.42-1.93z"/>`,
+  Laptop: `<rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="2" y1="20" x2="22" y2="20"/>`,
+  Globe: `<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>`,
+  Quote: `<path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/>`,
+  Handshake: `<path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"/>`,
+  Sparkles: `<path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/>`,
+  Maximize2: `<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>`,
+  Lightbulb: `<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/>`,
+  Rocket: `<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>`,
+};
+
+function Icon({ name, size = 20, className = '', strokeWidth = 2 }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24"
+      fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round"
+      strokeLinejoin="round" className={className}
+      dangerouslySetInnerHTML={{ __html: IC[name] || '' }} />
+  );
+}
+
+/* ─── Logo ─────────────────────────────────────────────────── */
+function Logo() {
+  const colors = ['#ef4444','#3b82f6','#22c55e','#f59e0b','#8b5cf6'];
+  return (
+    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-sm"
+      style={{ animation: 'spin 30s linear infinite' }}>
+      <style>{`@keyframes spin { from{transform-origin:50px 50px;transform:rotate(0deg)} to{transform-origin:50px 50px;transform:rotate(360deg)} }`}</style>
+      <g transform="translate(50,50)">
+        {colors.map((c, i) => (
+          <path key={i} d="M -8,-15 L 8,-15 L 12,-25 L 8,-35 L -8,-35 L -12,-25 Z"
+            fill={c} transform={`rotate(${i * 72})`} />
+        ))}
+      </g>
+      <circle cx="50" cy="50" r="6" fill="white" fillOpacity="0.2" />
+    </svg>
+  );
+}
+
+/* ─── Hooks ─────────────────────────────────────────────────── */
+function useVisible(margin = '-150px') {
+  const ref = useRef(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) setVisible(true); },
+      { rootMargin: margin }
+    );
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+  return [ref, visible];
+}
+
+function useScrollY() {
+  const [y, setY] = useState(0);
+  useEffect(() => {
+    const h = () => setY(window.scrollY);
+    window.addEventListener('scroll', h, { passive: true });
+    return () => window.removeEventListener('scroll', h);
+  }, []);
+  return y;
+}
+
+/* ─── Counter ───────────────────────────────────────────────── */
+function Counter({ target, duration = 2000, delay = 0 }) {
+  const [count, setCount] = useState(0);
+  const [ref, visible] = useVisible('-100px');
+  const started = useRef(false);
+  useEffect(() => {
+    if (visible && !started.current) {
+      started.current = true;
+      const tid = setTimeout(() => {
+        let start = null;
+        const step = (ts) => {
+          if (!start) start = ts;
+          const p = Math.min((ts - start) / duration, 1);
+          const ease = 1 - Math.pow(1 - p, 5);
+          setCount(Math.floor(ease * target));
+          if (p < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      }, delay * 1000);
+      return () => clearTimeout(tid);
+    }
+  }, [visible, target, duration, delay]);
+  return <span ref={ref} className="tabular-nums">{count.toLocaleString()}</span>;
+}
+
+/* ─── FadeSection ───────────────────────────────────────────── */
+function FadeSection({ children, className, id, style, direction = 'up', delay = '0s' }) {
+  const [ref, visible] = useVisible('-120px');
+  const dirs = {
+    up: ['translateY(24px)', 'translateY(0)'],
+    down: ['translateY(-24px)', 'translateY(0)'],
+    left: ['translateX(-30px)', 'translateX(0)'],
+    right: ['translateX(30px)', 'translateX(0)'],
+    scale: ['scale(0.9)', 'scale(1)'],
+  };
+  const [from, to] = dirs[direction] || dirs.up;
+  return (
+    <section ref={ref} id={id} className={className} style={{
+      ...style,
+      opacity: visible ? 1 : 0,
+      transform: visible ? to : from,
+      transition: `opacity 0.9s cubic-bezier(.16,1,.3,1) ${delay}, transform 0.9s cubic-bezier(.16,1,.3,1) ${delay}`,
+      willChange: 'transform, opacity',
+    }}>
+      {children}
+    </section>
+  );
+}
+
+/* ─── Navbar ────────────────────────────────────────────────── */
+const navLinks = [
+  {name:'HOME',href:'#home'},{name:'ABOUT',href:'#about'},{name:'PROGRAMS',href:'#programs'},
+  {name:'IMPACT',href:'#impact'},{name:'GET INVOLVED',href:'#get-involved'},
+  {name:'TEAM',href:'#team'},{name:'GALLERY',href:'#gallery'},{name:'CONTACT',href:'#contact'},
+];
+function Navbar() {
+  const [open, setOpen] = useState(false);
+  const scrollY = useScrollY();
+  const scrolled = scrollY > 20;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setTimeout(() => setMounted(true), 100); }, []);
+
+  return (
+    <nav style={{
+      position: 'fixed', top: 0, left: 0, width: '100%', zIndex: 50,
+      backgroundColor: scrolled ? 'rgba(0,0,0,0.85)' : 'transparent',
+      backdropFilter: scrolled ? 'blur(20px)' : 'none',
+      borderBottom: scrolled ? '1px solid rgba(255,255,255,0.1)' : 'none',
+      transition: 'all 0.5s ease',
+      padding: scrolled ? '12px 0' : '24px 0',
+      opacity: mounted ? 1 : 0,
+      transform: mounted ? 'translateY(0)' : 'translateY(-50px)',
+    }}>
+      <div className="container mx-auto px-6 flex items-center justify-between">
+        <a href="#home" className="flex items-center gap-3 group flex-shrink-0" onClick={() => setOpen(false)}>
+          <div className="w-10 h-10 rounded-xl overflow-hidden p-1.5" style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)'}}>
+            <Logo />
+          </div>
+          <span className="text-xl font-bold tracking-tighter text-white">
+            PROJECT <span style={{color:'#EFAE3C'}}>DHRUV</span>
+          </span>
+        </a>
+
+        {/* Desktop */}
+        <div className="hidden xl:flex items-center gap-1 rounded-2xl p-1" style={{background: scrolled ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.1)'}}>
+          {navLinks.map(l => (
+            <a key={l.href} href={l.href} className="nav-link relative px-4 py-2 rounded-xl text-[10px] font-bold tracking-[0.2em] text-white/70 hover:text-primary transition-colors">
+              {l.name}
+            </a>
+          ))}
+          <div className="ml-2">
+            <a href="#donate">
+              <button className="px-6 py-2.5 text-white text-[10px] font-bold tracking-widest rounded-xl transition-all shadow-lg" style={{background:'#0055FF'}}
+                onMouseEnter={e => e.currentTarget.style.background='#000'}
+                onMouseLeave={e => e.currentTarget.style.background='#0055FF'}>
+                DONATE
+              </button>
+            </a>
+          </div>
+        </div>
+
+        {/* Mobile toggle */}
+        <button className="xl:hidden p-2 rounded-xl text-white transition-all"
+          style={{border:'1px solid rgba(255,255,255,0.1)',background:'rgba(255,255,255,0.05)'}}
+          onClick={() => setOpen(o => !o)}>
+          <Icon name={open ? 'X' : 'Menu'} size={24} />
+        </button>
+      </div>
+
+      {/* Mobile menu */}
+      <div style={{
+        maxHeight: open ? '600px' : '0',
+        overflow: 'hidden',
+        opacity: open ? 1 : 0,
+        transition: 'max-height 0.6s cubic-bezier(.16,1,.3,1), opacity 0.4s ease',
+        background: 'rgba(0,0,0,0.95)',
+        backdropFilter: 'blur(20px)',
+        borderBottom: open ? '1px solid rgba(255,255,255,0.1)' : 'none',
+      }}>
+        <div className="container mx-auto px-6 py-10 flex flex-col gap-6">
+          {navLinks.map((l, i) => (
+            <a key={l.href} href={l.href} onClick={() => setOpen(false)}
+              className="text-sm font-bold tracking-[0.3em] text-white/70 hover:text-primary transition-colors"
+              style={{ transitionDelay: `${i * 50}ms` }}>
+              {l.name}
+            </a>
+          ))}
+          <a href="#donate" onClick={() => setOpen(false)} className="mt-4">
+            <button className="w-full py-5 text-white rounded-2xl font-bold tracking-widest shadow-xl"
+              style={{background:'#0055FF'}}
+              onMouseEnter={e => e.currentTarget.style.background='#000'}
+              onMouseLeave={e => e.currentTarget.style.background='#0055FF'}>
+              DONATE NOW
+            </button>
+          </a>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+/* ─── Footer ────────────────────────────────────────────────── */
+function Footer() {
+  return (
+    <footer className="py-24 rounded-t-[3rem]" style={{
+      background: 'radial-gradient(circle at 50% 50%, #001133 0%, #020617 100%)',
+      borderTop: '1px solid rgba(255,255,255,0.1)'
+    }}>
+      <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+        <div className="flex flex-col gap-6">
+          <a href="#home" className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg overflow-hidden p-1" style={{background:'rgba(255,255,255,0.1)'}}>
+              <Logo />
+            </div>
+            <span className="text-lg font-bold tracking-tighter text-white">
+              PROJECT <span style={{color:'#0055FF'}}>DHRUV</span>
+            </span>
+          </a>
+          <p className="text-gray-400 text-sm leading-relaxed">
+            An initiative of Mensa India, identifying and nurturing exceptionally gifted children from under-resourced communities.
+          </p>
+          <div className="flex gap-4">
+            {['Twitter','Linkedin','Github'].map(n => (
+              <a key={n} href="#" className="w-10 h-10 rounded-full glass flex items-center justify-center text-white transition-colors hover:bg-black">
+                <Icon name={n} size={18} />
+              </a>
+            ))}
+          </div>
+        </div>
+        <div>
+          <h4 className="text-white font-semibold mb-6">Quick Links</h4>
+          <ul className="flex flex-col gap-4 text-gray-400 text-sm">
+            {[['#about','About Us'],['#programs','Our Programs'],['#impact','Impact Stories'],['#donate','Donate']].map(([h,n]) => (
+              <li key={h}><a href={h} className="hover:text-primary transition-colors">{n}</a></li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h4 className="text-white font-semibold mb-6">Support</h4>
+          <ul className="flex flex-col gap-4 text-gray-400 text-sm">
+            {[['#get-involved','Become a Mentor'],['#get-involved','Partner With Us'],['#contact','Contact Support'],['#','Privacy Policy']].map(([h,n]) => (
+              <li key={n}><a href={h} className="hover:text-primary transition-colors">{n}</a></li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h4 className="text-white font-semibold mb-6">Contact Us</h4>
+          <ul className="flex flex-col gap-4 text-gray-400 text-sm">
+            <li className="flex items-center gap-3"><Icon name="Mail" size={16} className="text-primary" /><span>info@projectdhruv.org</span></li>
+            <li className="flex items-center gap-3"><Icon name="Phone" size={16} className="text-primary" /><span>+91 123 456 7890</span></li>
+            <li className="flex items-center gap-3"><Icon name="MapPin" size={16} className="text-primary" /><span>D-173, Sushant Lok 1, Gurugram, Haryana 122002</span></li>
+          </ul>
+        </div>
+      </div>
+      <div className="container mx-auto px-6 mt-16 pt-8 text-center text-gray-500 text-xs flex flex-col md:flex-row justify-between items-center gap-4"
+        style={{borderTop:'1px solid rgba(255,255,255,0.05)'}}>
+        <span>© 2026 Project Dhruv - Mensa India. All rights reserved.</span>
+        <a href="#" className="hover:text-primary transition-colors flex items-center gap-1">
+          <Icon name="Github" size={12} /> Admin Dashboard
+        </a>
+      </div>
+    </footer>
+  );
+}
+
+/* ─── Home Hero ─────────────────────────────────────────────── */
+function HeroSection() {
+  const scrollY = useScrollY();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setTimeout(() => setMounted(true), 100); }, []);
+
+  return (
+    <section id="home" className="relative min-h-screen flex items-center pt-32 pb-20 overflow-hidden"
+      style={{ backgroundColor: '#FFF5E1' }}>
+      {/* Parallax bg */}
+      <div className="absolute inset-0 z-0" style={{ transform: `translateY(${scrollY * 0.3}px)` }}>
+        <div className="absolute inset-0 bg-cover bg-center opacity-45"
+          style={{ backgroundImage: `url(https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&q=80)` }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, #FFF5E1 0%, rgba(255,245,225,0.7) 50%, transparent 100%)' }} />
+      </div>
+
+      <div className="container mx-auto px-6 relative z-10">
+        <div className="max-w-4xl">
+          <div style={{
+            opacity: mounted ? 1 : 0,
+            transform: mounted ? 'translateY(0)' : 'translateY(30px)',
+            transition: 'opacity 1.2s ease, transform 1.2s ease',
+          }}>
+            <span className="font-black uppercase mb-8 block text-[1.2rem]"
+              style={{ color: '#EFAE3C', letterSpacing: '0.4em' }}>
+              MENSA INDIA INITIATIVE
+            </span>
+            <h1 className="font-bold tracking-tight mb-10 text-5xl md:text-6xl" style={{ color: '#000', lineHeight: '1.1' }}>
+              Unlocking <br />
+              <span style={{ color: '#0055FF', fontFamily: 'Playfair Display, serif', fontStyle: 'italic' }}>Extraordinary</span><br />
+              Potential
+            </h1>
+            <p className="leading-relaxed max-w-xl mb-12 font-medium text-lg md:text-xl"
+              style={{ color: '#000', opacity: 0.7,
+                transitionDelay: '0.8s',
+                opacity: mounted ? 0.7 : 0,
+                transform: mounted ? 'translateY(0)' : 'translateY(20px)',
+                transition: 'opacity 1s ease 0.8s, transform 1s ease 0.8s'
+              }}>
+              Identifying and nurturing exceptionally gifted children from under-resourced communities — ensuring brilliance is never limited by circumstance.
+            </p>
+            <div className="flex flex-wrap gap-5" style={{
+              opacity: mounted ? 1 : 0,
+              transform: mounted ? 'translateY(0)' : 'translateY(20px)',
+              transition: 'opacity 0.8s ease 1.2s, transform 0.8s ease 1.2s'
+            }}>
+              <a href="#donate">
+                <button className="font-bold transition-all duration-300 shadow-xl btn-hover"
+                  style={{backgroundColor:'#EFAE3C',color:'#fff',borderRadius:'9999px',padding:'16px 32px',
+                    boxShadow:'0 20px 40px rgba(239,174,60,0.3)'}}>
+                  SPONSOR A SCHOLAR
+                </button>
+              </a>
+              <a href="#get-involved">
+                <button className="px-8 py-4 rounded-full font-bold transition-all duration-300 btn-hover"
+                  style={{border:'2px solid rgba(26,26,26,0.2)',color:'#1A1A1A'}}
+                  onMouseEnter={e => { e.currentTarget.style.background='#000'; e.currentTarget.style.color='#fff'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background='transparent'; e.currentTarget.style.color='#1A1A1A'; }}>
+                  BECOME A MENTOR
+                </button>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── Who We Are ────────────────────────────────────────────── */
+function WhoWeAre() {
+  const [ref, visible] = useVisible('-100px');
+  return (
+    <FadeSection className="py-24" style={{ backgroundColor: '#ffffff', color: '#1A1A1A' }}>
+      <div className="container mx-auto px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+          <div ref={ref} style={{
+            opacity: visible ? 1 : 0,
+            transform: visible ? 'scale(1) rotate(0deg)' : 'scale(0.8) rotate(-5deg)',
+            transition: 'opacity 1.2s ease, transform 1.2s ease',
+            position: 'relative'
+          }}>
+            <div className="absolute -inset-4 rounded-full" style={{ background: 'rgba(0,85,255,0.1)', filter: 'blur(40px)' }} />
+            <div className="float-img relative z-10 overflow-hidden aspect-[4/3] rounded-[2.5rem] shadow-2xl glass-light"
+              style={{ border: '1px solid rgba(26,26,26,0.1)' }}>
+              <img src="https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80"
+                alt="Children learning" className="w-full h-full object-cover transition-all duration-700"
+                style={{ filter: 'grayscale(20%)' }}
+                onMouseEnter={e => e.currentTarget.style.filter='grayscale(0%)'}
+                onMouseLeave={e => e.currentTarget.style.filter='grayscale(20%)'} />
+            </div>
+          </div>
+          <div style={{
+            opacity: visible ? 1 : 0, transform: visible ? 'translateX(0)' : 'translateX(40px)',
+            transition: 'opacity 0.8s ease 0.2s, transform 0.8s ease 0.2s'
+          }}>
+            <span className="font-bold uppercase tracking-[0.4em] text-xs mb-4 block" style={{ color: '#EFAE3C' }}>
+              The Mission
+            </span>
+            <h2 className="font-bold mb-6 tracking-tight leading-tight text-4xl md:text-5xl" style={{ color: '#1A1A1A' }}>
+              Genius Knows No Boundaries
+            </h2>
+            <p className="leading-relaxed mb-6 text-lg font-medium" style={{ color: 'rgba(26,26,26,0.7)' }}>
+              Project Dhruv is a dedicated social impact initiative by Mensa India. We believe that brilliant minds exist everywhere, yet many gifted children in under-resourced communities never get the chance to shine.
+            </p>
+            <a href="#about">
+              <button className="px-8 py-4 text-white rounded-2xl font-bold transition-all duration-300 flex items-center gap-3 group shadow-lg"
+                style={{ background: '#1A1A1A' }}
+                onMouseEnter={e => e.currentTarget.style.background='#0055FF'}
+                onMouseLeave={e => e.currentTarget.style.background='#1A1A1A'}>
+                OUR FULL STORY <Icon name="ArrowRight" size={18} />
+              </button>
+            </a>
+          </div>
+        </div>
+      </div>
+    </FadeSection>
+  );
+}
+
+/* ─── Holistic Accordion ────────────────────────────────────── */
+function HolisticSection() {
+  const [openIdx, setOpenIdx] = useState(0);
+  const items = [
+    { title: 'Identifying', desc: 'Standardized Mensa certified IQ tests are given to underprivileged children.' },
+    { title: 'Nurturing', desc: 'Scholars receive personalized mentoring and academic enrichment.' },
+    { title: 'Supporting', desc: 'We provide financial assistance for fees and digital devices.' },
+  ];
+  const [ref, visible] = useVisible('-100px');
+  return (
+    <FadeSection className="py-24" style={{ backgroundColor: '#2563eb', color: '#ffffff' }}>
+      <div className="container mx-auto px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div ref={ref} style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateX(0)' : 'translateX(-30px)', transition: 'opacity 0.8s ease, transform 0.8s ease' }}>
+            <h2 className="font-bold mb-8 tracking-tight leading-tight text-4xl md:text-6xl" style={{ color: '#fff' }}>
+              Building brighter futures for children
+            </h2>
+            <p className="text-lg mb-12 max-w-xl font-medium" style={{ color: 'rgba(255,255,255,0.8)' }}>
+              We partner with local organizations, governments, and community leaders to ensure our programs.
+            </p>
+            <div style={{ maxWidth: '640px' }}>
+              {items.map((item, i) => (
+                <div key={i} style={{ borderTop: '1px solid rgba(255,255,255,0.2)', ...(i === items.length - 1 ? { borderBottom: '1px solid rgba(255,255,255,0.2)' } : {}) }}>
+                  <button onClick={() => setOpenIdx(openIdx === i ? null : i)}
+                    className="w-full py-6 flex items-center justify-between text-left transition-all">
+                    <span className="text-2xl md:text-3xl font-medium text-white">{item.title}</span>
+                    <div className="flex-shrink-0 ml-4 text-white">
+                      <Icon name={openIdx === i ? 'Minus' : 'Plus'} size={28} />
+                    </div>
+                  </button>
+                  <div className="accordion-content" style={{ maxHeight: openIdx === i ? '200px' : '0', overflow: 'hidden', opacity: openIdx === i ? 1 : 0, transition: 'max-height 0.4s cubic-bezier(.04,.62,.23,.98), opacity 0.3s ease' }}>
+                    <p className="pb-8 leading-relaxed text-lg md:text-xl font-medium max-w-xl" style={{ color: 'rgba(255,255,255,0.9)' }}>{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-12">
+              <a href="#about">
+                <button className="px-10 py-4 bg-white rounded-full font-bold uppercase tracking-wider text-sm shadow-xl transition-all btn-hover"
+                  style={{ color: '#2563eb' }}>
+                  Discover Our Approach
+                </button>
+              </a>
+            </div>
+          </div>
+          <div className="hidden lg:block relative" style={{ opacity: visible ? 1 : 0, transform: visible ? 'scale(1)' : 'scale(0.9)', transition: 'opacity 1s ease 0.2s, transform 1s ease 0.2s' }}>
+            <div className="aspect-[4/5] rounded-[3rem] overflow-hidden shadow-2xl">
+              <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&q=80"
+                alt="Education" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            </div>
+            <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full" style={{ background: 'rgba(0,85,255,0.2)', filter: 'blur(40px)' }} />
+          </div>
+        </div>
+      </div>
+    </FadeSection>
+  );
+}
+
+/* ─── CTA Section ───────────────────────────────────────────── */
+function CTASection() {
+  return (
+    <FadeSection className="py-32 relative overflow-hidden" style={{ backgroundColor: '#FDFCF7' }}>
+      <div className="container mx-auto px-6">
+        <div className="bg-white p-12 md:p-24 text-center flex flex-col items-center gap-10 rounded-[4rem]"
+          style={{ boxShadow: '0 40px 100px -20px rgba(0,0,0,0.05)', border: '1px solid rgba(26,26,26,0.05)' }}>
+          <h2 className="text-4xl md:text-6xl font-bold tracking-tight max-w-4xl leading-tight" style={{ color: '#1A1A1A' }}>
+            Be the Catalyst for a Brilliant Mind's Future
+          </h2>
+          <p className="text-xl max-w-2xl leading-relaxed font-medium" style={{ color: 'rgba(26,26,26,0.7)' }}>
+            Your support can change the trajectory of a gifted child's life. Join us in our mission to ensure that no genius goes unnoticed.
+          </p>
+          <div className="flex flex-wrap justify-center gap-6">
+            <a href="#donate">
+              <button className="px-10 py-5 text-white rounded-2xl font-bold transition-all duration-300 shadow-xl btn-hover"
+                style={{ background: '#EFAE3C', boxShadow: '0 20px 40px rgba(239,174,60,0.2)' }}
+                onMouseEnter={e => { e.currentTarget.style.background='#000'; }}
+                onMouseLeave={e => { e.currentTarget.style.background='#EFAE3C'; }}>
+                SPONSOR A SCHOLAR
+              </button>
+            </a>
+            <a href="#contact">
+              <button className="px-10 py-5 rounded-2xl font-bold transition-all duration-300"
+                style={{ border: '2px solid rgba(26,26,26,0.1)', color: '#1A1A1A' }}
+                onMouseEnter={e => { e.currentTarget.style.background='#000'; e.currentTarget.style.color='#fff'; }}
+                onMouseLeave={e => { e.currentTarget.style.background='transparent'; e.currentTarget.style.color='#1A1A1A'; }}>
+                GET IN TOUCH
+              </button>
+            </a>
+          </div>
+        </div>
+      </div>
+    </FadeSection>
+  );
+}
+
+/* ─── Section Header (black editorial) ─────────────────────── */
+function SectionHero({ subtitle, title, description, imageUrl }) {
+  const [mounted, setMounted] = useState(false);
+  const [ref, visible] = useVisible('-50px');
+  useEffect(() => { setTimeout(() => setMounted(true), 200); }, []);
+  return (
+    <section className="relative py-24 flex items-center overflow-visible" style={{ backgroundColor: '#000' }}>
+      <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-cover bg-center transition-all duration-2000"
+          style={{ backgroundImage: `url(${imageUrl})`, opacity: 0.4 }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.6) 50%, transparent 100%)' }} />
+      </div>
+      <div className="container mx-auto px-6 relative z-10">
+        <div className="max-w-3xl">
+          <div ref={ref} style={{
+            opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(30px)',
+            transition: 'opacity 1.2s ease, transform 1.2s ease'
+          }}>
+            <span className="font-bold uppercase mb-6 block text-xs" style={{ color: '#EFAE3C', letterSpacing: '0.4em' }}>
+              {subtitle}
+            </span>
+            <h1 className="font-bold tracking-tight mb-8 text-5xl md:text-7xl text-white" style={{ lineHeight: '1.1' }}>
+              {title}
+            </h1>
+            <p className="text-gray-300 leading-relaxed max-w-xl font-medium text-xl">
+              {description}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── About Page ────────────────────────────────────────────── */
+function AboutSection() {
+  const [openIdx, setOpenIdx] = useState(0);
+  const values = [
+    { title: 'Scientific Integrity', icon: 'Shield', desc: 'Using standardized, culture-fair IQ tests to ensure unbiased identification. We follow rigorous scientific protocols to ensure every child is evaluated fairly, regardless of their background or language.' },
+    { title: 'Holistic Nurturing', icon: 'Zap', desc: 'Addressing academic, emotional, and social needs of every scholar. We believe that intellectual growth must be supported by emotional resilience and social confidence to create well-rounded leaders.' },
+    { title: 'Empowerment', icon: 'Heart', desc: 'Building confidence and leadership skills alongside intellectual growth. Our programs are designed to give scholars the tools they need to advocate for themselves and their communities.' },
+    { title: 'Excellence', icon: 'Star', desc: 'Striving for the highest standards in everything we do for our children. We don\'t just aim for success; we aim for global standards of excellence in every aspect of our support system.' },
+  ];
+  const importance = [
+    { num: '01', title: 'Preventing Underachievement', desc: 'Without proper challenge, gifted minds often disengage, leading to academic and professional underperformance.' },
+    { num: '02', title: 'Social & Emotional Well-being', desc: 'Gifted children often feel isolated. We provide a community of peers where they feel understood and valued.' },
+    { num: '03', title: 'Building Future Leaders', desc: 'Identifying brilliance early allows us to nurture the innovators and leaders India needs for the next century.' },
+    { num: '04', title: 'Social Equity', desc: 'We ensure that brilliance from under-resourced communities isn\'t lost due to lack of opportunity or resources.' },
+  ];
+  return (
+    <div id="about" className="scroll-mt-24">
+      <SectionHero subtitle="About Project Dhruv" title="Nurturing the Pole Stars of Tomorrow"
+        description="We identify exceptionally gifted children from under-resourced communities and provide them with the ecosystem they need to thrive."
+        imageUrl="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&q=80" />
+
+      {/* Vision & Mission */}
+      <FadeSection className="py-32 bg-white text-warm-ink">
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+            {[
+              { icon: 'Eye', title: 'Our Vision', main: 'To create a world where intellectual potential is recognized and nurtured regardless of socio-economic background.', sub: 'We envision a society where every gifted child has the opportunity to contribute their unique brilliance to the world, leading to a more innovative and equitable future for all.' },
+              { icon: 'Target', title: 'Our Mission', main: 'To systematically identify gifted children through scientific IQ testing and provide long-term, holistic support.', sub: 'This includes academic enrichment, financial assistance, professional mentoring, and emotional guidance to ensure they thrive in their unique intellectual journeys.' },
+            ].map((c, i) => (
+              <div key={i} className="p-12 rounded-[3rem] glass-light flex flex-col gap-8 transition-all duration-500 card-hover"
+                style={{ border: '1px solid rgba(26,26,26,0.1)' }}>
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(0,85,255,0.1)' }}>
+                  <Icon name={c.icon} size={32} className="text-primary" style={{ color: '#0055FF' }} />
+                </div>
+                <h2 className="text-4xl font-bold tracking-tight" style={{ color: '#1A1A1A' }}>
+                  {c.title.split(' ').map((w, j, arr) => j === arr.length - 1
+                    ? <span key={j} style={{ color: '#0055FF', fontFamily: 'Playfair Display, serif', fontStyle: 'italic' }}>{w}</span>
+                    : <span key={j}>{w} </span>)}
+                </h2>
+                <p className="leading-relaxed text-xl font-medium" style={{ color: 'rgba(26,26,26,0.7)' }}>{c.main}</p>
+                <p className="leading-relaxed" style={{ color: 'rgba(26,26,26,0.6)' }}>{c.sub}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </FadeSection>
+
+      {/* Our Story */}
+      <FadeSection className="py-32 relative overflow-hidden" style={{ backgroundColor: '#050B1A', color: '#fff' }}>
+        <div className="absolute top-0 right-0 w-1/2 h-full rounded-full pointer-events-none" style={{ background: 'rgba(0,85,255,0.1)', filter: 'blur(120px)' }} />
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+            <div className="relative group cursor-pointer">
+              <div className="p-0 overflow-hidden aspect-video rounded-[2.5rem] shadow-2xl glass"
+                style={{ border: '1px solid rgba(255,255,255,0.1)' }}>
+                <img src="https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?auto=format&fit=crop&q=80"
+                  alt="Project Dhruv Story" className="w-full h-full object-cover transition-all duration-700"
+                  style={{ filter: 'grayscale(40%)' }}
+                  onMouseEnter={e => e.currentTarget.style.filter='grayscale(0%)'}
+                  onMouseLeave={e => e.currentTarget.style.filter='grayscale(40%)'} />
+                <div className="absolute inset-0 flex items-center justify-center transition-colors"
+                  style={{ background: 'rgba(0,0,0,0.4)' }}>
+                  <div className="w-24 h-24 rounded-full flex items-center justify-center transition-transform duration-500 group-hover:scale-110"
+                    style={{ background: '#0055FF', boxShadow: '0 0 50px rgba(0,85,255,0.4)' }}>
+                    <Icon name="Play" size={40} className="text-white ml-1" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center gap-3 font-bold mb-6 uppercase tracking-[0.4em] text-xs" style={{ color: '#0055FF' }}>
+                <Icon name="History" size={20} /> The Origin Story
+              </div>
+              <h2 className="text-5xl md:text-6xl font-bold mb-8 tracking-tighter text-white" style={{ lineHeight: '1.1' }}>
+                How it all{' '}
+                <span style={{ color: '#0055FF', fontFamily: 'Playfair Display, serif', fontStyle: 'italic' }}>started</span>
+              </h2>
+              <p className="text-gray-300 leading-relaxed text-xl mb-8 font-medium">
+                Project Dhruv was born out of a simple yet profound observation: intellectual brilliance is distributed equally across all segments of society, but opportunities are not.
+              </p>
+              <p className="text-gray-400 leading-relaxed text-lg">
+                Since its inception, we have traveled to the most remote corners and under-funded schools, discovering children with IQs that rival the world's greatest minds. These children, our "Dhruvs" (Pole Stars), are now being guided to lead India into a new era of excellence.
+              </p>
+            </div>
+          </div>
+        </div>
+      </FadeSection>
+
+      {/* Core Values Accordion */}
+      <FadeSection className="py-32" style={{ backgroundColor: '#2563eb', color: '#fff' }}>
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+            <div>
+              <h2 className="text-4xl md:text-6xl font-bold mb-8 tracking-tight leading-tight text-white">
+                Our Core{' '}
+                <span style={{ fontFamily: 'Playfair Display, serif', fontStyle: 'italic' }}>Values</span>
+              </h2>
+              <p className="text-xl mb-12 max-w-xl font-medium leading-relaxed" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                The principles that guide our identification and nurturing process every single day, ensuring every gifted child gets the platform they deserve.
+              </p>
+              <div>
+                {values.map((v, i) => (
+                  <div key={i} style={{ borderTop: '1px solid rgba(255,255,255,0.2)', ...(i === values.length - 1 ? { borderBottom: '1px solid rgba(255,255,255,0.2)' } : {}) }}>
+                    <button onClick={() => setOpenIdx(openIdx === i ? null : i)}
+                      className="w-full py-8 flex items-center justify-between text-left group transition-all">
+                      <div className="flex items-center gap-6">
+                        <div className="w-12 h-12 rounded-xl flex items-center justify-center transition-all"
+                          style={{ background: 'rgba(255,255,255,0.1)' }}
+                          onMouseEnter={e => e.currentTarget.style.background='rgba(0,0,0,0.5)'}
+                          onMouseLeave={e => e.currentTarget.style.background='rgba(255,255,255,0.1)'}>
+                          <Icon name={v.icon} size={24} className="text-white" />
+                        </div>
+                        <span className="text-2xl md:text-3xl font-medium text-white">{v.title}</span>
+                      </div>
+                      <div className="flex-shrink-0 ml-4 text-white">
+                        <Icon name={openIdx === i ? 'Minus' : 'Plus'} size={28} />
+                      </div>
+                    </button>
+                    <div style={{ maxHeight: openIdx === i ? '300px' : '0', overflow: 'hidden', opacity: openIdx === i ? 1 : 0, transition: 'max-height 0.4s cubic-bezier(.04,.62,.23,.98), opacity 0.3s ease' }}>
+                      <p className="pb-10 pl-[4.5rem] leading-relaxed text-lg md:text-xl font-medium max-w-xl" style={{ color: 'rgba(255,255,255,0.9)' }}>{v.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="hidden lg:block relative">
+              <div className="aspect-[4/5] rounded-[3rem] overflow-hidden shadow-2xl">
+                <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80"
+                  alt="Team Collaboration" className="w-full h-full object-cover" style={{ filter: 'grayscale(20%)' }} referrerPolicy="no-referrer" />
+              </div>
+              <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full" style={{ background: 'rgba(0,85,255,0.2)', filter: 'blur(40px)' }} />
+            </div>
+          </div>
+        </div>
+      </FadeSection>
+
+      {/* Why Gifted Education Matters */}
+      <FadeSection className="py-32 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-24">
+            <h2 className="text-4xl md:text-6xl font-bold mb-6 tracking-tighter" style={{ color: '#1A1A1A' }}>
+              Why Gifted Education{' '}
+              <span style={{ color: '#0055FF', fontFamily: 'Playfair Display, serif', fontStyle: 'italic' }}>Matters</span>
+            </h2>
+            <p className="text-xl font-medium" style={{ color: 'rgba(26,26,26,0.7)' }}>
+              The cost of ignoring gifted potential is too high for both the individual and society.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
+            {importance.map((item, i) => (
+              <div key={i} className="flex gap-8 items-start group glass-light p-8 rounded-[2.5rem] card-hover cursor-default transition-all duration-500"
+                style={{ border: '1px solid rgba(26,26,26,0.1)' }}>
+                <span className="font-serif font-black leading-none select-none transition-all duration-500"
+                  style={{ fontSize: '6rem', color: 'rgba(0,85,255,0.1)' }}>
+                  {item.num}
+                </span>
+                <div className="pt-4">
+                  <h3 className="text-2xl font-bold mb-4" style={{ color: '#1A1A1A' }}>{item.title}</h3>
+                  <p className="leading-relaxed text-lg font-medium" style={{ color: 'rgba(26,26,26,0.6)' }}>{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </FadeSection>
+    </div>
+  );
+}
+
+/* ─── Programs Section ──────────────────────────────────────── */
+function ProgramsSection() {
+  const programs = [
+    { title: 'Identification Program', desc: 'Scientific IQ assessments conducted in under-resourced schools across India, using standardized Mensa-certified tests.', icon: 'Search', features: 'IQ Assessment, School Outreach, Rural Coverage' },
+    { title: 'Mentorship Circle', desc: 'Connecting scholars with professional mentors from diverse fields to guide their academic and professional journey.', icon: 'Users', features: '1-on-1 Mentoring, Career Guidance, Monthly Sessions' },
+    { title: 'Academic Enrichment', desc: 'Supplementary learning resources and advanced courses to challenge and stimulate gifted minds beyond the standard curriculum.', icon: 'BookOpen', features: 'Advanced Courses, Digital Tools, Science Kits' },
+    { title: 'Financial Support', desc: 'Comprehensive scholarships covering tuition, books, devices, and other educational necessities for our scholars.', icon: 'Heart', features: 'Full Scholarships, Device Grants, Book Allowance' },
+    { title: 'Digital Literacy', desc: 'Ensuring every scholar has access to modern technology and the skills to use it effectively in the digital age.', icon: 'Laptop', features: 'Coding, Digital Tools, Internet Access' },
+    { title: 'Cognitive Development', desc: 'Specialized programs to foster critical thinking, problem-solving, and creativity in gifted learners.', icon: 'Brain', features: 'Chess, Logic, STEM Workshops' },
+  ];
+  return (
+    <div id="programs" className="scroll-mt-24">
+      <SectionHero subtitle="Our Method" title="Nurturing Brilliance Holistically"
+        description="We offer a comprehensive suite of programs designed to support every aspect of a gifted child's development, from identification to career success."
+        imageUrl="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80" />
+
+      <FadeSection className="py-24 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {programs.map((p, i) => (
+              <div key={i} className="p-10 glass-light rounded-[2.5rem] card-hover transition-all group flex flex-col h-full"
+                style={{ border: '1px solid rgba(26,26,26,0.1)', transitionDelay: `${i * 60}ms` }}>
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110"
+                  style={{ background: 'rgba(0,85,255,0.1)' }}>
+                  <Icon name={p.icon} size={28} style={{ color: '#0055FF' }} className="text-primary" />
+                </div>
+                <h3 className="text-2xl font-bold mb-4 transition-colors group-hover:text-primary" style={{ color: '#1A1A1A' }}>{p.title}</h3>
+                <p className="leading-relaxed text-base font-medium mb-8 flex-grow" style={{ color: 'rgba(26,26,26,0.6)' }}>{p.desc}</p>
+                <div className="pt-8" style={{ borderTop: '1px solid rgba(26,26,26,0.1)' }}>
+                  <div className="flex flex-wrap gap-2">
+                    {p.features.split(',').map((f, j) => (
+                      <span key={j} className="text-[10px] uppercase tracking-widest font-bold px-3 py-1 rounded-full transition-colors"
+                        style={{ background: 'rgba(26,26,26,0.05)', color: 'rgba(26,26,26,0.6)' }}>
+                        {f.trim()}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </FadeSection>
+
+      <FadeSection className="py-24 text-white text-center" style={{ background: 'radial-gradient(circle at 50% 50%, #001133 0%, #020617 100%)' }}>
+        <div className="container mx-auto px-6">
+          <div className="glass p-16 rounded-[3rem]" style={{ border: '1px solid rgba(255,255,255,0.1)' }}>
+            <h2 className="text-4xl md:text-5xl font-bold mb-8 tracking-tight text-white">
+              Ready to <span style={{ color: '#0055FF', fontFamily: 'Playfair Display, serif', fontStyle: 'italic' }}>Support</span> Our Scholars?
+            </h2>
+            <p className="text-gray-400 text-lg mb-12 max-w-2xl mx-auto font-medium">
+              Your involvement can provide the resources needed to keep these programs running and expanding to more children.
+            </p>
+            <div className="flex flex-wrap justify-center gap-6">
+              <a href="#donate"><button className="px-8 py-4 text-white rounded-full font-bold transition-all duration-300 shadow-xl btn-hover"
+                style={{ background: '#0055FF' }} onMouseEnter={e => e.currentTarget.style.background='#000'} onMouseLeave={e => e.currentTarget.style.background='#0055FF'}>
+                SPONSOR A SCHOLAR
+              </button></a>
+              <a href="#get-involved"><button className="px-8 py-4 glass text-white rounded-full font-bold transition-all duration-300 flex items-center gap-3 group btn-hover"
+                style={{ border: '1px solid rgba(255,255,255,0.2)' }}>
+                EXPLORE OPPORTUNITIES <Icon name="ArrowRight" size={18} />
+              </button></a>
+            </div>
+          </div>
+        </div>
+      </FadeSection>
+    </div>
+  );
+}
+
+/* ─── Impact Section ────────────────────────────────────────── */
+function ImpactSection() {
+  const stories = [
+    { name: 'Anmol', desc: "Identified in a small village school, Anmol's IQ was off the charts. Today he's pursuing engineering at IIT.", img: 'https://picsum.photos/seed/anmol/400/400' },
+    { name: 'Sanjana', desc: "Sanjana struggled with social isolation before being identified. Our community gave her the confidence to excel.", img: 'https://picsum.photos/seed/sanjana/400/400' },
+    { name: 'Rahul', desc: "Coming from a family of daily wage earners, Rahul had no access to computers. Now he codes in three languages.", img: 'https://picsum.photos/seed/rahul/400/400' },
+    { name: 'Priya', desc: "Priya's artistic talent was hidden until she received the right mentorship. She now leads art programs.", img: 'https://picsum.photos/seed/priya/400/400' },
+    { name: 'Arjun', desc: "A math prodigy who now competes at national levels thanks to our support and mentorship network.", img: 'https://picsum.photos/seed/arjun/400/400' },
+    { name: 'Meera', desc: "Meera's passion for science led her to develop a low-cost water filter for her village.", img: 'https://picsum.photos/seed/meera/400/400' },
+  ];
+  const stats = [
+    { label: 'CHILDREN ASSESSED', value: 5000, delay: 0 },
+    { label: 'SCHOLARS NURTURED', value: 300, delay: 0.2 },
+    { label: 'DEDICATED MENTORS', value: 150, delay: 0.4 },
+    { label: 'STRATEGIC PARTNERS', value: 15, delay: 0.6 },
+  ];
+  return (
+    <div id="impact" className="scroll-mt-24">
+      <SectionHero subtitle="Our Success" title="Real Impact, Real Stories"
+        description="Measuring our success through the transformed lives of our scholars and the communities they inspire."
+        imageUrl="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&q=80" />
+
+      {/* Stats */}
+      <FadeSection className="py-32 relative overflow-hidden" style={{ background: 'radial-gradient(circle at 50% 50%, #001133 0%, #020617 100%)', color: '#fff' }}>
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-24">
+            <div>
+              <span className="font-bold uppercase tracking-[0.6em] text-[10px] mb-6 block" style={{ color: '#0055FF' }}>THE NUMBERS</span>
+              <h2 className="text-7xl md:text-8xl font-bold tracking-tight leading-none text-white">
+                Our <br />
+                <span style={{ color: '#0055FF', fontFamily: 'Playfair Display, serif', fontStyle: 'italic' }}>Impact</span>
+              </h2>
+            </div>
+            <div className="lg:pl-20">
+              <p className="text-xl max-w-md font-medium leading-relaxed" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                Every statistic represents a child whose life has been transformed through recognition and support.
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {stats.map((s, i) => (
+              <div key={i} className="flex flex-col gap-6 glass p-10 rounded-[2.5rem] text-center card-hover"
+                style={{ border: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)' }}>
+                <div className="text-6xl md:text-7xl font-bold tracking-tight leading-none" style={{ color: '#0055FF' }}>
+                  <Counter target={s.value} delay={s.delay} /><span className="text-4xl ml-1">+</span>
+                </div>
+                <div className="h-[1px] w-full" style={{ background: 'rgba(255,255,255,0.1)' }} />
+                <div className="text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: 'rgba(255,255,255,0.5)' }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </FadeSection>
+
+      {/* 3 Areas */}
+      <FadeSection className="py-32 relative overflow-hidden" style={{ background: 'radial-gradient(circle at 50% 50%, #00081a 0%, #000000 100%)', color: '#fff' }}>
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="text-center max-w-3xl mx-auto mb-24">
+            <span className="font-bold uppercase tracking-[0.6em] text-[10px] mb-6 block" style={{ color: '#0055FF' }}>OUR METHODOLOGY</span>
+            <h2 className="text-5xl md:text-6xl font-bold tracking-tight mb-8 text-white">
+              3 Different <span style={{ color: '#0055FF', fontFamily: 'Playfair Display, serif', fontStyle: 'italic' }}>Areas</span> of Impact
+            </h2>
+            <p className="text-xl font-medium" style={{ color: 'rgba(255,255,255,0.6)' }}>
+              Our holistic approach ensures that every gifted child receives the identification, nurturing, and support they need to thrive.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            {[
+              { title:'Identifying', desc:'Standardized Mensa certified IQ tests are given to underprivileged children to find hidden brilliance.', icon:'Search' },
+              { title:'Nurturing', desc:'Scholars receive personalized mentoring and holistic development programs to reach their potential.', icon:'Award' },
+              { title:'Supporting', desc:'We provide financial assistance and resources to ensure brilliance is never limited by circumstance.', icon:'Heart' },
+            ].map((item, i) => (
+              <div key={i} className="flex flex-col gap-8 glass p-12 rounded-[3rem] text-center h-full card-hover"
+                style={{ border:'1px solid rgba(255,255,255,0.05)',background:'rgba(255,255,255,0.05)',backdropFilter:'blur(20px)' }}>
+                <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-4"
+                  style={{ background: 'rgba(0,85,255,0.1)' }}>
+                  <Icon name={item.icon} size={40} className="text-primary" style={{ color: '#0055FF' }} />
+                </div>
+                <h3 className="text-3xl font-bold text-white">{item.title}</h3>
+                <p className="text-lg leading-relaxed font-medium" style={{ color: 'rgba(255,255,255,0.6)' }}>{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </FadeSection>
+
+      {/* Scholar Stories */}
+      <FadeSection className="py-24 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="text-center max-w-3xl mx-auto mb-20">
+            <span className="font-bold uppercase tracking-[0.4em] text-xs mb-4 block" style={{ color: '#EFAE3C' }}>VOICES</span>
+            <h2 className="font-bold mb-8 tracking-tight text-4xl md:text-5xl" style={{ color: '#1A1A1A' }}>Scholar Stories</h2>
+            <p className="text-lg font-medium" style={{ color: 'rgba(26,26,26,0.7)' }}>Real voices from the children whose lives have been changed by our community.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+            {stories.map((s, i) => (
+              <div key={i} className="flex flex-col gap-8 p-10 glass-light rounded-[2.5rem] group h-full card-hover transition-all duration-500"
+                style={{ border: '1px solid rgba(26,26,26,0.1)' }}>
+                <div className="aspect-square rounded-[2rem] overflow-hidden shadow-lg">
+                  <img src={s.img} alt={s.name} className="w-full h-full object-cover transition-all duration-700"
+                    style={{ filter: 'grayscale(40%)' }}
+                    onMouseEnter={e => { e.currentTarget.style.filter='grayscale(0%)'; e.currentTarget.style.transform='scale(1.1)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.filter='grayscale(40%)'; e.currentTarget.style.transform='scale(1)'; }}
+                    referrerPolicy="no-referrer" />
+                </div>
+                <div className="relative">
+                  <Icon name="Quote" size={48} style={{ position:'absolute',top:'-24px',left:'-24px',color:'rgba(0,85,255,0.1)' }} />
+                  <p className="italic leading-relaxed mb-8 text-lg font-medium" style={{ color: 'rgba(26,26,26,0.7)' }}>"{s.desc}"</p>
+                  <div className="flex items-center gap-4">
+                    <div className="h-[1px] w-8" style={{ background: '#0055FF' }} />
+                    <h4 className="text-xl font-bold" style={{ color: '#0055FF' }}>{s.name}</h4>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </FadeSection>
+
+      <FadeSection className="py-24 text-white text-center" style={{ background: 'radial-gradient(circle at 50% 50%, #001133 0%, #020617 100%)' }}>
+        <div className="container mx-auto px-6">
+          <div className="glass p-16 rounded-[3rem]" style={{ border: '1px solid rgba(255,255,255,0.1)' }}>
+            <h2 className="text-4xl md:text-5xl font-bold mb-8 tracking-tight text-white">
+              Help Us Create More <span style={{ color:'#0055FF',fontFamily:'Playfair Display,serif',fontStyle:'italic' }}>Stories</span>
+            </h2>
+            <p className="text-gray-400 text-lg mb-12 max-w-2xl mx-auto font-medium">Every donation helps us reach another gifted child and provide them with the platform they deserve.</p>
+            <div className="flex flex-wrap justify-center gap-6">
+              <a href="#donate"><button className="px-8 py-4 text-white rounded-full font-bold transition-all btn-hover shadow-xl"
+                style={{background:'#0055FF'}} onMouseEnter={e=>e.currentTarget.style.background='#000'} onMouseLeave={e=>e.currentTarget.style.background='#0055FF'}>SPONSOR A SCHOLAR</button></a>
+              <a href="#get-involved"><button className="px-8 py-4 glass text-white rounded-full font-bold transition-all flex items-center gap-3 btn-hover"
+                style={{border:'1px solid rgba(255,255,255,0.2)'}}>JOIN OUR MISSION <Icon name="ArrowRight" size={18} /></button></a>
+            </div>
+          </div>
+        </div>
+      </FadeSection>
+    </div>
+  );
+}
+
+/* ─── Team Section ──────────────────────────────────────────── */
+function TeamSection() {
+  const team = [
+    {name:'Imtiaz Saigara',role:'Leadership Team',img:'https://picsum.photos/seed/imtiaz/400/400'},
+    {name:'Kishore Asthana',role:'Leadership Team',img:'https://picsum.photos/seed/kishore/400/400'},
+    {name:'Prabhat Agarwal',role:'Leadership Team',img:'https://picsum.photos/seed/prabhat/400/400'},
+    {name:'Ankur Garg',role:'Leadership Team',img:'https://picsum.photos/seed/ankur/400/400'},
+    {name:'Gowri Shankar',role:'Leadership Team',img:'https://picsum.photos/seed/gowri/400/400'},
+    {name:'Apoorva Tiwari',role:'Leadership Team',img:'https://picsum.photos/seed/apoorva/400/400'},
+    {name:'Akshay Chaudhary',role:'Leadership Team',img:'https://picsum.photos/seed/akshay/400/400'},
+    {name:'Ankit Tuteja',role:'Leadership Team',img:'https://picsum.photos/seed/ankit/400/400'},
+  ];
+  return (
+    <div id="team" className="scroll-mt-24">
+      <SectionHero subtitle="Our Team" title="The Minds Behind the Mission"
+        description="Meet the dedicated individuals driving the mission of Project Dhruv forward with passion and expertise."
+        imageUrl="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80" />
+      <FadeSection className="py-24 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {team.map((m, i) => (
+              <div key={i} className="p-6 glass-light rounded-[2.5rem] transition-all group card-hover"
+                style={{ border:'1px solid rgba(26,26,26,0.1)', transitionDelay:`${i*80}ms` }}>
+                <div className="aspect-square rounded-2xl overflow-hidden mb-6 relative">
+                  <img src={m.img} alt={m.name} className="w-full h-full object-cover transition-all duration-700"
+                    style={{ filter:'grayscale(100%)' }}
+                    onMouseEnter={e => { e.currentTarget.style.filter='grayscale(0%)'; e.currentTarget.style.transform='scale(1.1)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.filter='grayscale(100%)'; e.currentTarget.style.transform='scale(1)'; }}
+                    referrerPolicy="no-referrer" />
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4"
+                    style={{ background:'rgba(0,85,255,0.2)',backdropFilter:'blur(2px)' }}>
+                    {['Linkedin','Mail'].map(n => (
+                      <button key={n} className="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
+                        style={{ color:'#0055FF' }}>
+                        <Icon name={n} size={18} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="text-center">
+                  <h3 className="text-xl font-bold mb-1 tracking-tight" style={{ color:'#1A1A1A' }}>{m.name}</h3>
+                  <p className="text-xs font-bold uppercase tracking-[0.2em]" style={{ color:'#0055FF' }}>{m.role}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </FadeSection>
+      <FadeSection className="py-24 text-white text-center" style={{ background:'radial-gradient(circle at 50% 50%, #001133 0%, #020617 100%)' }}>
+        <div className="container mx-auto px-6">
+          <div className="glass p-16 rounded-[3rem]" style={{ border:'1px solid rgba(255,255,255,0.1)' }}>
+            <h2 className="text-4xl md:text-5xl font-bold mb-8 tracking-tight text-white">
+              Want to <span style={{color:'#0055FF',fontFamily:'Playfair Display,serif',fontStyle:'italic'}}>Join</span> Our Team?
+            </h2>
+            <p className="text-gray-400 text-lg mb-12 max-w-2xl mx-auto font-medium">We are always looking for passionate volunteers and partners to help us scale our impact.</p>
+            <div className="flex flex-wrap justify-center gap-6">
+              <a href="#get-involved"><button className="px-8 py-4 text-white rounded-full font-bold transition-all btn-hover shadow-xl"
+                style={{background:'#0055FF'}} onMouseEnter={e=>e.currentTarget.style.background='#000'} onMouseLeave={e=>e.currentTarget.style.background='#0055FF'}>VOLUNTEER WITH US</button></a>
+              <a href="#contact"><button className="px-8 py-4 glass text-white rounded-full font-bold transition-all flex items-center gap-3 btn-hover"
+                style={{border:'1px solid rgba(255,255,255,0.2)'}}>GET IN TOUCH <Icon name="ArrowRight" size={18} /></button></a>
+            </div>
+          </div>
+        </div>
+      </FadeSection>
+    </div>
+  );
+}
+
+/* ─── Gallery Section ───────────────────────────────────────── */
+function GallerySection() {
+  const [selected, setSelected] = useState(null);
+  const images = [
+    {id:1,url:'https://picsum.photos/seed/dhruv1/800/600',title:'Assessment Day'},
+    {id:2,url:'https://picsum.photos/seed/dhruv2/800/600',title:'Mentorship Workshop'},
+    {id:3,url:'https://picsum.photos/seed/dhruv3/800/600',title:'Digital Literacy Class'},
+    {id:4,url:'https://picsum.photos/seed/dhruv4/800/600',title:'Scholar Recognition'},
+    {id:5,url:'https://picsum.photos/seed/dhruv5/800/600',title:'Science Fair'},
+    {id:6,url:'https://picsum.photos/seed/dhruv6/800/600',title:'Community Outreach'},
+  ];
+  useEffect(() => {
+    const handler = e => { if (e.key === 'Escape') setSelected(null); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, []);
+  return (
+    <div id="gallery" className="scroll-mt-24">
+      <SectionHero subtitle="Visual Journey" title="Our Gallery of Excellence"
+        description="A glimpse into the lives, achievements, and transformative moments of our extraordinary scholars."
+        imageUrl="https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80" />
+      <FadeSection className="py-24 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {images.map(img => (
+              <div key={img.id} className="group cursor-pointer" onClick={() => setSelected(img.url)}
+                style={{ transition:'transform 0.3s ease' }}
+                onMouseEnter={e => e.currentTarget.style.transform='scale(1.02)'}
+                onMouseLeave={e => e.currentTarget.style.transform='scale(1)'}>
+                <div className="overflow-hidden aspect-[4/3] relative rounded-[2.5rem] glass-light shadow-2xl"
+                  style={{ border:'1px solid rgba(26,26,26,0.1)' }}>
+                  <img src={img.url} alt={img.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" referrerPolicy="no-referrer" />
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-4"
+                    style={{ background:'rgba(0,0,0,0.4)',backdropFilter:'blur(2px)' }}>
+                    <Icon name="Maximize2" size={40} className="text-white" />
+                    <span className="text-white font-bold tracking-[0.2em] uppercase text-xs">{img.title}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </FadeSection>
+      <FadeSection className="py-24 text-white text-center" style={{ background:'radial-gradient(circle at 50% 50%, #001133 0%, #020617 100%)' }}>
+        <div className="container mx-auto px-6">
+          <div className="glass p-16 rounded-[3rem]" style={{ border:'1px solid rgba(255,255,255,0.1)' }}>
+            <h2 className="text-4xl md:text-5xl font-bold mb-8 tracking-tight text-white">
+              Witness the <span style={{color:'#0055FF',fontFamily:'Playfair Display,serif',fontStyle:'italic'}}>Transformation</span>
+            </h2>
+            <p className="text-gray-400 text-lg mb-12 max-w-2xl mx-auto font-medium">Every image represents a story of potential being realized. Join us in creating more such moments.</p>
+            <div className="flex flex-wrap justify-center gap-6">
+              <a href="#donate"><button className="px-8 py-4 text-white rounded-full font-bold transition-all btn-hover shadow-xl"
+                style={{background:'#0055FF'}} onMouseEnter={e=>e.currentTarget.style.background='#000'} onMouseLeave={e=>e.currentTarget.style.background='#0055FF'}>SUPPORT A SCHOLAR</button></a>
+              <a href="#get-involved"><button className="px-8 py-4 glass text-white rounded-full font-bold transition-all flex items-center gap-3 btn-hover"
+                style={{border:'1px solid rgba(255,255,255,0.2)'}}>GET INVOLVED <Icon name="ArrowRight" size={18}/></button></a>
+            </div>
+          </div>
+        </div>
+      </FadeSection>
+
+      {/* Lightbox */}
+      {selected && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6"
+          style={{ background:'rgba(0,0,0,0.95)',backdropFilter:'blur(20px)',opacity:1,animation:'fadeIn 0.3s ease' }}
+          onClick={() => setSelected(null)}>
+          <style>{`@keyframes fadeIn{from{opacity:0}to{opacity:1}} @keyframes scaleIn{from{opacity:0;transform:scale(0.9)}to{opacity:1;transform:scale(1)}}`}</style>
+          <button className="absolute top-10 right-10 text-white transition-colors hover:text-primary" style={{ color:'rgba(255,255,255,0.7)' }}>
+            <Icon name="X" size={40} />
+          </button>
+          <img src={selected} className="max-w-full max-h-full rounded-2xl shadow-2xl"
+            style={{ border:'1px solid rgba(255,255,255,0.1)',animation:'scaleIn 0.3s ease' }}
+            onClick={e => e.stopPropagation()} referrerPolicy="no-referrer" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── GetInvolved Section ───────────────────────────────────── */
+function GetInvolvedSection() {
+  const paths = [
+    { title:'Become a Mentor', icon:'Users', desc:'Share your expertise and guide a gifted child through their academic and professional journey. Your experience can be the light that shows them the way.', features:['1-on-1 Guidance','Career Mentoring','Skill Development'], btn:'Apply as Mentor', highlight:false },
+    { title:'Sponsor a Scholar', icon:'Heart', desc:'Directly fund a child\'s education and resources. Your contribution ensures that financial barriers never stand in the way of extraordinary potential.', features:['Direct Impact','Regular Updates','Tax Benefits'], btn:'Start Sponsoring', link:'#donate', highlight:true },
+    { title:'Partner With Us', icon:'Handshake', desc:'Organizations and schools can partner with us to expand our reach, provide resources, or offer specialized training to our scholars.', features:['Corporate Social Responsibility','Resource Sharing','Joint Initiatives'], btn:'Become a Partner', highlight:false },
+  ];
+  return (
+    <div id="get-involved" className="scroll-mt-24">
+      <SectionHero subtitle="Join the Mission" title="Be the Difference They Need"
+        description="Every brilliant mind deserves a chance to shine. Choose your path to support India's most gifted children."
+        imageUrl="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=80" />
+      <FadeSection className="py-24 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            {paths.map((p, i) => (
+              <div key={i} className="p-12 rounded-[3rem] glass-light flex flex-col h-full group transition-all card-hover"
+                style={{ border: p.highlight ? '1px solid rgba(0,85,255,0.3)' : '1px solid rgba(26,26,26,0.1)', boxShadow: p.highlight ? '0 30px 60px rgba(0,85,255,0.1)' : undefined }}>
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-8 transition-transform group-hover:scale-110 shadow-xl"
+                  style={{ background:'rgba(26,26,26,0.05)',border:'1px solid rgba(26,26,26,0.1)' }}>
+                  <Icon name={p.icon} size={32} className="text-primary" style={{ color:'#0055FF' }} />
+                </div>
+                <h3 className="text-3xl font-bold mb-6" style={{ color:'#1A1A1A' }}>{p.title}</h3>
+                <p className="leading-relaxed mb-8 flex-grow font-medium" style={{ color:'rgba(26,26,26,0.6)' }}>{p.desc}</p>
+                <ul className="space-y-4 mb-10">
+                  {p.features.map((f, j) => (
+                    <li key={j} className="flex items-center gap-3 text-sm font-bold" style={{ color:'rgba(26,26,26,0.7)' }}>
+                      <div className="w-1.5 h-1.5 rounded-full" style={{ background:'#0055FF' }} /> {f}
+                    </li>
+                  ))}
+                </ul>
+                {p.link ? (
+                  <a href={p.link}>
+                    <button className="w-full py-5 text-white rounded-2xl font-bold transition-all flex items-center justify-center gap-2 shadow-xl"
+                      style={{ background:'#0055FF' }}
+                      onMouseEnter={e=>e.currentTarget.style.background='#000'} onMouseLeave={e=>e.currentTarget.style.background='#0055FF'}>
+                      {p.btn} <Icon name="ArrowRight" size={16} />
+                    </button>
+                  </a>
+                ) : (
+                  <button className="w-full py-5 glass-light rounded-2xl font-bold transition-all flex items-center justify-center gap-2"
+                    style={{ border:'1px solid rgba(26,26,26,0.2)',color:'#1A1A1A' }}
+                    onMouseEnter={e=>{e.currentTarget.style.background='#000';e.currentTarget.style.color='#fff';}}
+                    onMouseLeave={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.color='#1A1A1A';}}>
+                    {p.btn} <Icon name="ArrowRight" size={16} />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </FadeSection>
+
+      {/* Why Volunteer */}
+      <FadeSection className="py-32 relative overflow-hidden text-white" style={{ background:'radial-gradient(circle at 50% 50%, #001133 0%, #020617 100%)' }}>
+        <div className="absolute inset-0 opacity-50" style={{ background:'radial-gradient(circle at 50% 50%, rgba(0,85,255,0.1),transparent 70%)' }} />
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+            <div>
+              <span className="font-bold uppercase tracking-[0.4em] text-xs mb-6 block" style={{ color:'#0055FF' }}>The Impact</span>
+              <h2 className="text-5xl md:text-6xl font-bold mb-8 tracking-tighter leading-tight text-white">
+                Why your <br />
+                <span style={{ color:'#0055FF',fontFamily:'Playfair Display,serif',fontStyle:'italic' }}>Involvement</span> <br />
+                Matters
+              </h2>
+              <p className="text-gray-300 text-xl leading-relaxed font-medium mb-12">
+                When you get involved with Project Dhruv, you aren't just volunteering; you are investing in the intellectual capital of the nation.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                {[{title:'Direct Impact',icon:'Zap',desc:'See the immediate difference your guidance makes.'},
+                  {title:'Network',icon:'Sparkles',desc:'Join a community of like-minded intellectual leaders.'},
+                  {title:'Legacy',icon:'Star',desc:'Help shape the future of India\'s brightest minds.'},
+                  {title:'Growth',icon:'Shield',desc:'Develop your own leadership and mentoring skills.'}].map((item, i) => (
+                  <div key={i} className="flex flex-col gap-4">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background:'rgba(0,85,255,0.2)' }}>
+                      <Icon name={item.icon} size={20} style={{ color:'#0055FF' }} />
+                    </div>
+                    <h4 className="text-lg font-bold text-white">{item.title}</h4>
+                    <p className="text-gray-400 text-sm leading-relaxed">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="relative">
+              <div className="aspect-square rounded-[4rem] overflow-hidden shadow-2xl relative glass"
+                style={{ border:'1px solid rgba(255,255,255,0.1)' }}>
+                <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80"
+                  alt="Volunteers" className="w-full h-full object-cover transition-all duration-700"
+                  style={{ filter:'grayscale(30%)' }}
+                  onMouseEnter={e=>e.currentTarget.style.filter='grayscale(0%)'}
+                  onMouseLeave={e=>e.currentTarget.style.filter='grayscale(30%)'} referrerPolicy="no-referrer" />
+                <div className="absolute inset-0" style={{ background:'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }} />
+                <div className="absolute bottom-12 left-12 right-12">
+                  <p className="text-2xl text-white mb-4" style={{ fontFamily:'Playfair Display,serif',fontStyle:'italic' }}>"Mentoring these children has been the most rewarding experience of my career."</p>
+                  <p className="font-bold uppercase tracking-widest text-xs" style={{ color:'#0055FF' }}>— Dr. Anita Sharma, Mentor</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </FadeSection>
+
+      <FadeSection className="py-32 text-center text-white" style={{ background:'radial-gradient(circle at 50% 50%, #001133 0%, #020617 100%)' }}>
+        <div className="container mx-auto px-6">
+          <div className="max-w-3xl mx-auto glass p-16 rounded-[3rem]" style={{ border:'1px solid rgba(255,255,255,0.1)' }}>
+            <h2 className="text-4xl md:text-5xl font-bold mb-8 tracking-tight text-white">
+              Ready to make an <span style={{color:'#0055FF',fontFamily:'Playfair Display,serif',fontStyle:'italic'}}>Impact</span>?
+            </h2>
+            <p className="text-gray-400 text-xl mb-12 font-medium">Contact us today to discuss how you can best contribute to the Project Dhruv ecosystem.</p>
+            <a href="#contact"><button className="px-12 py-6 text-white rounded-2xl font-bold shadow-2xl transition-all btn-hover"
+              style={{background:'#0055FF',boxShadow:'0 20px 40px rgba(0,85,255,0.2)'}}
+              onMouseEnter={e=>e.currentTarget.style.background='#000'} onMouseLeave={e=>e.currentTarget.style.background='#0055FF'}>
+              GET IN TOUCH WITH US
+            </button></a>
+          </div>
+        </div>
+      </FadeSection>
+    </div>
+  );
+}
+
+/* ─── Donate Section ────────────────────────────────────────── */
+function DonateSection() {
+  return (
+    <div id="donate" className="scroll-mt-24">
+      <SectionHero subtitle="Support Our Mission" title="Invest in Brilliance, Change the Future"
+        description="Your contribution directly supports the identification and nurturing of gifted children from underprivileged backgrounds across India."
+        imageUrl="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&q=80" />
+      <FadeSection className="py-24 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <div className="lg:col-span-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {[
+                  { title:'Sponsor a Scholar', amount:'₹25,000', period:'/year', desc:'Provide complete educational support, mentorship, and resources for one gifted child.', features:['Tuition & Books','Personal Mentorship','Skill Workshops','Progress Reports'] },
+                  { title:'Resource Fund', amount:'₹10,000', period:'/one-time', desc:'Contribute to our library, science kits, and digital learning tools for multiple centers.', features:['Digital Tablets','Science Equipment','Library Books','Internet Access'] },
+                ].map((tier, i) => (
+                  <div key={i} className="glass-light p-10 rounded-[3rem] shadow-xl transition-all group card-hover"
+                    style={{ border:'1px solid rgba(26,26,26,0.1)' }}>
+                    <h3 className="text-2xl font-bold mb-2 transition-colors" style={{ color:'#1A1A1A' }}>{tier.title}</h3>
+                    <div className="flex items-baseline gap-1 mb-6">
+                      <span className="text-4xl font-bold" style={{ color:'#0055FF' }}>{tier.amount}</span>
+                      <span className="font-medium" style={{ color:'rgba(26,26,26,0.4)' }}>{tier.period}</span>
+                    </div>
+                    <p className="mb-8 font-medium leading-relaxed" style={{ color:'rgba(26,26,26,0.6)' }}>{tier.desc}</p>
+                    <ul className="space-y-4 mb-10">
+                      {tier.features.map((f, j) => (
+                        <li key={j} className="flex items-center gap-3 text-sm font-bold" style={{ color:'rgba(26,26,26,0.7)' }}>
+                          <div className="w-1.5 h-1.5 rounded-full" style={{ background:'#0055FF' }} /> {f}
+                        </li>
+                      ))}
+                    </ul>
+                    <button className="w-full py-4 glass-light rounded-2xl font-bold transition-all flex items-center justify-center gap-2"
+                      style={{ border:'1px solid rgba(26,26,26,0.1)',color:'#1A1A1A' }}
+                      onMouseEnter={e=>{e.currentTarget.style.background='#000';e.currentTarget.style.color='#fff';}}
+                      onMouseLeave={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.color='#1A1A1A';}}>
+                      Select This Option <Icon name="ArrowRight" size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="glass-light p-10 rounded-[3rem] shadow-2xl" style={{ border:'1px solid rgba(26,26,26,0.1)' }}>
+              <h3 className="text-3xl font-bold mb-6" style={{ color:'#1A1A1A' }}>
+                Custom <span style={{ color:'#0055FF',fontFamily:'Playfair Display,serif',fontStyle:'italic' }}>Amount</span>
+              </h3>
+              <p className="mb-8 font-medium" style={{ color:'rgba(26,26,26,0.6)' }}>Every contribution, no matter the size, makes a significant difference in a child's life.</p>
+              <div className="space-y-6 mb-10">
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold uppercase tracking-widest ml-2" style={{ color:'rgba(26,26,26,0.4)' }}>Amount (INR)</label>
+                  <input type="number" className="rounded-2xl px-6 py-4 text-2xl font-bold focus:outline-none transition-colors"
+                    style={{ background:'rgba(26,26,26,0.05)',border:'1px solid rgba(26,26,26,0.1)',color:'#1A1A1A' }}
+                    placeholder="5,000"
+                    onFocus={e=>e.currentTarget.style.border='1px solid #0055FF'}
+                    onBlur={e=>e.currentTarget.style.border='1px solid rgba(26,26,26,0.1)'} />
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  {['1k','2k','5k'].map(v => (
+                    <button key={v} className="py-3 rounded-xl font-bold transition-all"
+                      style={{ background:'rgba(26,26,26,0.05)',border:'1px solid rgba(26,26,26,0.1)',color:'#1A1A1A' }}
+                      onMouseEnter={e=>{e.currentTarget.style.background='#000';e.currentTarget.style.color='#fff';e.currentTarget.style.border='1px solid #000';}}
+                      onMouseLeave={e=>{e.currentTarget.style.background='rgba(26,26,26,0.05)';e.currentTarget.style.color='#1A1A1A';e.currentTarget.style.border='1px solid rgba(26,26,26,0.1)';}}>
+                      {v}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <button className="w-full py-5 text-white rounded-2xl font-bold transition-all shadow-xl mb-6 btn-hover"
+                style={{ background:'#0055FF',boxShadow:'0 20px 40px rgba(0,85,255,0.2)' }}
+                onMouseEnter={e=>e.currentTarget.style.background='#000'} onMouseLeave={e=>e.currentTarget.style.background='#0055FF'}>
+                Donate Now
+              </button>
+              <p className="text-center font-bold uppercase tracking-widest text-[10px]" style={{ color:'rgba(26,26,26,0.4)' }}>
+                Secure 256-bit SSL Encrypted Payment
+              </p>
+            </div>
+          </div>
+        </div>
+      </FadeSection>
+      <FadeSection className="py-24 text-white" style={{ background:'radial-gradient(circle at 50% 50%, #001133 0%, #020617 100%)' }}>
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-12">
+            {[{icon:'Heart',label:'Lives Touched',val:'5,000+'},{icon:'Award',label:'Scholars Nurtured',val:'300+'},{icon:'Users',label:'Mentors Engaged',val:'150+'},{icon:'Shield',label:'Direct Impact',val:'100%'}].map((s, i) => (
+              <div key={i} className="text-center group card-hover">
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 transition-all"
+                  style={{ background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)' }}
+                  onMouseEnter={e=>{e.currentTarget.style.background='rgba(0,85,255,0.2)';e.currentTarget.style.border='1px solid rgba(0,85,255,0.5)';}}
+                  onMouseLeave={e=>{e.currentTarget.style.background='rgba(255,255,255,0.05)';e.currentTarget.style.border='1px solid rgba(255,255,255,0.1)';}}>
+                  <Icon name={s.icon} size={32} className="text-primary" style={{ color:'#0055FF' }} />
+                </div>
+                <h4 className="text-4xl font-bold mb-2 text-white transition-colors">{s.val}</h4>
+                <p className="font-bold uppercase tracking-widest text-xs" style={{ color:'rgba(255,255,255,0.5)' }}>{s.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </FadeSection>
+    </div>
+  );
+}
+
+/* ─── Contact Section ───────────────────────────────────────── */
+function ContactSection() {
+  return (
+    <div id="contact" className="scroll-mt-24">
+      <SectionHero subtitle="Connect" title="Get in Touch With Our Team"
+        description="Have questions or want to learn more? We'd love to hear from you and explore how we can work together."
+        imageUrl="https://images.unsplash.com/photo-1423666639041-f56000c27a9a?auto=format&fit=crop&q=80" />
+      <FadeSection className="py-24" style={{ background:'#f0f9ff',color:'#1A1A1A' }}>
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+            <div className="flex flex-col gap-12">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {[
+                  {icon:'Mail',title:'Email Us',lines:['info@projectdhruv.org','support@mensaindia.org']},
+                  {icon:'Phone',title:'Call Us',lines:['+91 123 456 7890','Mon-Fri, 9am - 6pm']},
+                ].map((c, i) => (
+                  <div key={i} className="p-8 h-full group glass-light rounded-[2rem] transition-all hover:shadow-xl card-hover"
+                    style={{ border:'1px solid rgba(26,26,26,0.1)' }}>
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110"
+                      style={{ background:'rgba(0,85,255,0.1)' }}>
+                      <Icon name={c.icon} size={24} className="text-primary" style={{ color:'#0055FF' }} />
+                    </div>
+                    <h4 className="text-xl font-bold mb-2 transition-colors group-hover:text-primary" style={{ color:'#1A1A1A' }}>{c.title}</h4>
+                    {c.lines.map(l => <p key={l} className="text-sm font-medium" style={{ color:'rgba(26,26,26,0.6)' }}>{l}</p>)}
+                  </div>
+                ))}
+                <div className="md:col-span-2 p-8 group glass-light rounded-[2rem] transition-all hover:shadow-xl"
+                  style={{ border:'1px solid rgba(26,26,26,0.1)' }}>
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110"
+                    style={{ background:'rgba(0,85,255,0.1)' }}>
+                    <Icon name="MapPin" size={24} className="text-primary" style={{ color:'#0055FF' }} />
+                  </div>
+                  <h4 className="text-xl font-bold mb-2 transition-colors group-hover:text-primary" style={{ color:'#1A1A1A' }}>Our Location</h4>
+                  <p className="text-sm font-medium" style={{ color:'rgba(26,26,26,0.6)' }}>D-173, Sushant Lok 1, Gurugram, Haryana 122002</p>
+                </div>
+              </div>
+              <div>
+                <h4 className="font-bold mb-6 uppercase tracking-widest text-sm" style={{ color:'rgba(26,26,26,0.4)' }}>Follow Our Journey</h4>
+                <div className="flex gap-4">
+                  {['Twitter','Linkedin','Facebook','Instagram'].map(n => (
+                    <button key={n} className="w-12 h-12 rounded-xl glass-light flex items-center justify-center transition-all"
+                      style={{ border:'1px solid rgba(26,26,26,0.1)',color:'#1A1A1A' }}
+                      onMouseEnter={e=>{e.currentTarget.style.background='#000';e.currentTarget.style.color='#fff';}}
+                      onMouseLeave={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.color='#1A1A1A';}}>
+                      <Icon name={n} size={24} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="p-10 glass-light rounded-[3rem] shadow-2xl" style={{ border:'1px solid rgba(26,26,26,0.1)' }}>
+              <h3 className="text-2xl font-bold mb-8" style={{ color:'#1A1A1A' }}>
+                Send a <span style={{ color:'#0055FF',fontFamily:'Playfair Display,serif',fontStyle:'italic' }}>Message</span>
+              </h3>
+              <div className="flex flex-col gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {[{label:'Full Name',type:'text',ph:'John Doe'},{label:'Email Address',type:'email',ph:'john@example.com'}].map(f => (
+                    <div key={f.label} className="flex flex-col gap-2">
+                      <label className="text-xs font-bold uppercase tracking-widest ml-2" style={{ color:'rgba(26,26,26,0.4)' }}>{f.label}</label>
+                      <input type={f.type} className="rounded-xl px-4 py-3 focus:outline-none transition-colors"
+                        style={{ background:'rgba(26,26,26,0.05)',border:'1px solid rgba(26,26,26,0.1)',color:'#1A1A1A' }}
+                        placeholder={f.ph}
+                        onFocus={e=>e.currentTarget.style.borderColor='rgba(0,85,255,0.5)'}
+                        onBlur={e=>e.currentTarget.style.borderColor='rgba(26,26,26,0.1)'} />
+                    </div>
+                  ))}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold uppercase tracking-widest ml-2" style={{ color:'rgba(26,26,26,0.4)' }}>Subject</label>
+                  <select className="rounded-xl px-4 py-3 focus:outline-none transition-colors appearance-none"
+                    style={{ background:'rgba(26,26,26,0.05)',border:'1px solid rgba(26,26,26,0.1)',color:'#1A1A1A' }}>
+                    <option>General Inquiry</option>
+                    <option>Mentorship</option>
+                    <option>Partnership</option>
+                    <option>Donation</option>
+                  </select>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold uppercase tracking-widest ml-2" style={{ color:'rgba(26,26,26,0.4)' }}>Message</label>
+                  <textarea rows={5} className="rounded-xl px-4 py-3 focus:outline-none transition-colors resize-none"
+                    style={{ background:'rgba(26,26,26,0.05)',border:'1px solid rgba(26,26,26,0.1)',color:'#1A1A1A' }}
+                    placeholder="How can we help you?"
+                    onFocus={e=>e.currentTarget.style.borderColor='rgba(0,85,255,0.5)'}
+                    onBlur={e=>e.currentTarget.style.borderColor='rgba(26,26,26,0.1)'} />
+                </div>
+                <button className="w-full py-5 text-white rounded-xl font-bold transition-all shadow-xl btn-hover"
+                  style={{ background:'#0055FF',boxShadow:'0 20px 40px rgba(0,85,255,0.2)' }}
+                  onMouseEnter={e=>e.currentTarget.style.background='#000'} onMouseLeave={e=>e.currentTarget.style.background='#0055FF'}>
+                  Send Message
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </FadeSection>
+
+      {/* Map */}
+      <FadeSection className="pt-32 pb-24" style={{ background:'#f0f9ff' }}>
+        <div className="container mx-auto px-6">
+          <div className="relative w-full overflow-hidden glass-light rounded-[3rem] shadow-2xl" style={{ height:'450px',border:'1px solid rgba(26,26,26,0.1)' }}>
+            <iframe
+              src="https://maps.google.com/maps?q=D-173,%20Sushant%20Lok%201,%20Gurugram,%20Haryana%20122002&t=&z=15&ie=UTF8&iwloc=&output=embed"
+              width="100%" height="100%" style={{ border:0 }} allowFullScreen loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade" title="Project Dhruv Location" />
+          </div>
+        </div>
+      </FadeSection>
+    </div>
+  );
+}
+
+/* ─── App ───────────────────────────────────────────────────── */
+function App() {
+  return (
+    <div className="min-h-screen overflow-x-hidden">
+      <Navbar />
+      <div style={{ background:'#FFF5E1' }}>
+        <HeroSection />
+        <WhoWeAre />
+        <HolisticSection />
+        <CTASection />
+      </div>
+      <div>
+        <AboutSection />
+        <ProgramsSection />
+        <ImpactSection />
+        <TeamSection />
+        <GallerySection />
+        <GetInvolvedSection />
+        <DonateSection />
+        <ContactSection />
+      </div>
+      <div style={{ background:'#020617' }}>
+        <Footer />
+      </div>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>
